@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Install</title>
+  </head>
+  <body>
+    <template id="file">
+      <li text="path"></li>
+    </template>
+    <template id="complete">
+      <a href="/" target="_parent" text="name"></a>
+    </template>
+    <template id="manifest">
+      <article>
+        <h3>installing <span text="path"></span></h3>
+        <ul id="files"></ul>
+        <progress></progress>
+      </article>
+    </template>
+    <progress></progress>
+    <script type="module">
+      import { idbm } from './client/utils.js'
+
+      const sites = idbm('sites')
+
+      if('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/router.js')
+      }
+
+      function render(id, data) {
+        const template = typeof id === 'string'
+          ? document.getElementById(id) : id
+
+        const fragment = template.content.cloneNode(true)
+
+        for(const text of fragment.querySelectorAll('[text]')) {
+          text.textContent = data[text.getAttribute('text')]
+        }
+
+        return fragment
+      }
+
+      let store = null
+      const state = {  }
+
+      function startInstall(manifest) {
+        const template = render('manifest', manifest)
+        const progress = document.querySelector('progress')
+
+        state.manifest = manifest
+
+        store = caches.open(event.data.manifest.hash)
+
+        progress.parentNode.replaceChild(template, progress)
+      }
+
+      async function completeInstall(file) {
+        const template = render('complete', state.manifest)
+        const progress = document.querySelector('progress')
+
+        await sites.set(location.origin, state.manifest.hash)
+
+        progress.parentNode.replaceChild(template, progress)
+      }
+
+      async function appendFile(file) {
+        const template = render('file', file)
+        const files = document.getElementById('files')
+        const cache = await store
+        await cache.put(file.path, new Response(file.contents))
+        files.appendChild(template)
+      }
+
+      addEventListener('message', async event => {
+        if(event.data.manifest) {
+          startInstall(event.data.manifest)
+        } else if(event.data.file) {
+          appendFile(event.data.file)
+        } else if(event.data.done) {
+          completeInstall()
+        }
+      })
+    </script>
+  </body>
+</html>
