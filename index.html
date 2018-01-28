@@ -6,14 +6,145 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Webapp</title>
     <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        min-height: 100%;
+      }
+      body {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        align-items: stretch;
+
+        --primary: #333;
+        --primary-light: #555;
+        --primary-dark: #222;
+
+        --color: white;
+        --background: var(--primary);
+        --background-light: var(--primary-light);
+        --background-dark: var(--primary-dark);
+
+        color: var(--color);
+        background: var(--background);
+      }
+
+      nav {
+        background: var(--primary-dark);
+        display: flex;
+      }
+
+      nav :link, :visited {
+        display: block;
+        padding: 0.5em;
+        text-decoration: none;
+        color: var(--color);
+      }
+
+      form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-gap: .5em;
+        padding: .5em;
+        color: var(--color);
+        background: var(--background-dark);
+        border: thin solid var(--background);
+      }
+      form input, form textarea, form button {
+        border: none;
+        line-height: 2em;
+        font-size: 1.5em;
+        padding: 0 0.5em;
+        color: var(--color);
+        background: var(--background);
+        width: 100%;
+      }
+
+      form label {
+        grid-column: span 2;
+        font-size: 1.5em;
+      }
+
+      #apps {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: min-content;
+        align-items: flex-start;
+        grid-gap: .5em;
+        padding: .5em;
+        height: 100%;
+      }
+
+      .installer {
+        display: none;
+      }
+
+      .app {
+        background: var(--background);
+        padding: 1em;
+      }
+      .app h3 {
+        margin: 0;
+        padding: 0;
+      }
+      .app iframe {
+        border: none;
+        pointer-events: none;
+      }
+      .light {
+        color: var(--color);
+        background: var(--background-light);
+      }
+      .dark {
+        color: var(--color);
+        background: var(--background-dark);
+      }
+
+      [view] {
+        display: none;
+      }
+      [view]:target ~ #index { display: none; }
+      #index, [view]:target { display: block; }
+
+      .working-progress {
+        display: none;
+      }
+
+      .working .working-progress {
+        display: block;
+      }
+    </style>
   </head>
   <body>
-    <form>
-      <label>Torrent identifier</label>
-      <input type="text" name="hash">
-      <input type="submit" value="Install">
-    </form>
-
+    <nav class="dark">
+      <a tab href="#">Apps</a>
+      <a tab href="#/config">config</a>
+    </nav>
+    <section view id="/config">
+      <form class="trackers" class="dark">
+        <label>Trackers</label>
+        <textarea name="trackers" rows="3" cols="120">
+        </textarea>
+      </form>
+    </section>
+    <section view id="index">
+      <template id="app">
+        <a class="app" set="href:location,id:hash">
+          <picture  html="icon"></picture>
+          <h3 text="name"></h3>
+        </a>
+      </template>
+      <form class="install" class="dark">
+        <label>Torrent id</label>
+        <input type="text" name="hash">
+        <input class="light" type="submit" value="Install">
+      </form>
+      <article id="apps" class="dark">
+        <progress class="working-progress">0%</progress>
+      </article>
+    </section>
     <script type="module" src="client.js"></script>
   </body>
 </html>
